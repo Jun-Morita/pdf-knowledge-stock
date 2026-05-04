@@ -41,10 +41,11 @@ used with:
 - Preserve page boundaries as `## Page N` sections.
 - Export page snapshots for slide-heavy PDFs with `--export-images`.
 - Link exported page images from the generated Markdown.
+- Generate a structured knowledge-note skeleton with `--note-format knowledge`.
 
 ## Planned Features
 
-- Generate structured note sections for analysis and review.
+- Generate summaries and takeaways automatically.
 - Keep optional LLM cleanup separate from the local conversion path.
 
 ## Target Output
@@ -70,7 +71,7 @@ Page-level converted Markdown...
 ```
 
 Structured knowledge-note sections such as `Executive Summary` and
-`Key Takeaways` are planned for a later phase.
+`Key Takeaways` can be added with `--note-format knowledge`.
 
 ## Repository Layout
 
@@ -137,6 +138,12 @@ Export page images and link them from Markdown:
 uv run python scripts/convert_pdf.py data/raw/sample.pdf --export-images
 ```
 
+Generate an editable knowledge-note skeleton:
+
+```bash
+uv run python scripts/convert_pdf.py data/raw/sample.pdf --note-format knowledge
+```
+
 Overwrite an existing generated Markdown file:
 
 ```bash
@@ -174,7 +181,7 @@ Status: implemented.
 
 ### Phase 2: Knowledge Note Format
 
-Status: planned.
+Status: implemented as an editable skeleton.
 
 - Add stable sections for summaries, takeaways, slide notes, terms, and follow-up
   questions.

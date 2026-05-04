@@ -157,6 +157,8 @@ Current options:
 - `--export-images`
 - `--image-dir data/images`
 - `--image-dpi 150`
+- `--note-format raw`
+- `--note-format knowledge`
 - `--force` to overwrite existing generated files
 
 Expected future options:
@@ -217,6 +219,10 @@ Recommended future structured note format:
 In Phase 1, summary sections may be empty placeholders or omitted if the output
 is explicitly marked as `raw_conversion`.
 
+In Phase 2, `--note-format knowledge` may generate the structured note sections
+without summaries. The generated status should be `knowledge_skeleton` until
+automatic cleanup or summarization is added.
+
 ## Phase Plan
 
 ### Phase 1: Minimum Local Converter
@@ -237,7 +243,7 @@ Acceptance criteria:
 
 Goal: convert raw Markdown into structured knowledge notes.
 
-Status: next planned phase.
+Status: implemented as an editable skeleton.
 
 Acceptance criteria:
 

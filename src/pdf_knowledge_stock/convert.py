@@ -15,6 +15,12 @@ from pdf_knowledge_stock.metadata import (
     read_pdf_metadata,
     render_front_matter,
 )
+from pdf_knowledge_stock.notes import (
+    KNOWLEDGE_NOTE_FORMAT,
+    RAW_NOTE_FORMAT,
+    note_title_from_pdf,
+    render_knowledge_note,
+)
 
 
 def output_markdown_path(pdf_path: Path, output_dir: Path = DEFAULT_MARKDOWN_DIR) -> Path:
@@ -84,6 +90,7 @@ def convert_pdf_to_markdown_file(
     image_dir: Path = DEFAULT_IMAGE_DIR,
     export_images: bool = False,
     image_dpi: int = 150,
+    note_format: str = RAW_NOTE_FORMAT,
     force: bool = False,
 ) -> Path:
     """Convert one PDF into one Markdown file with YAML front matter."""
@@ -98,17 +105,25 @@ def convert_pdf_to_markdown_file(
         raise FileExistsError(f"Output already exists: {output_path}")
 
     metadata = build_source_metadata(source_path, backend=DEFAULT_BACKEND)
+    if note_format == KNOWLEDGE_NOTE_FORMAT:
+        metadata["status"] = "knowledge_skeleton"
+    elif note_format != RAW_NOTE_FORMAT:
+        raise ValueError(f"Unsupported note format: {note_format}")
     metadata.update(read_pdf_metadata(source_path))
     page_chunks = convert_pdf_to_page_markdown(source_path)
     if export_images:
         export_page_images(source_path, image_dir=image_dir, dpi=image_dpi)
-    body = render_page_sections(
+    page_sections = render_page_sections(
         page_chunks,
         markdown_path=output_path,
         pdf_path=source_path,
         image_dir=image_dir,
         include_images=export_images,
     )
+    if note_format == KNOWLEDGE_NOTE_FORMAT:
+        body = render_knowledge_note(page_sections, title=note_title_from_pdf(source_path))
+    else:
+        body = page_sections
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(f"{render_front_matter(metadata)}\n\n{body}", encoding="utf-8")
     return output_path

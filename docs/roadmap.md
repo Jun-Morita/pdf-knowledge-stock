@@ -11,6 +11,7 @@
 
 - Add stable sections for summaries, key takeaways, slide-by-slide notes,
   important terms, and follow-up questions.
+- Support `--note-format knowledge` for editable knowledge-note skeletons.
 
 ## Phase 3: Image Export
 

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from pdf_knowledge_stock.config import DEFAULT_IMAGE_DIR, DEFAULT_MARKDOWN_DIR
 from pdf_knowledge_stock.convert import convert_pdf_to_markdown_file
+from pdf_knowledge_stock.notes import NOTE_FORMATS, RAW_NOTE_FORMAT
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,6 +43,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=150,
         help="DPI for exported page images.",
     )
+    parser.add_argument(
+        "--note-format",
+        choices=NOTE_FORMATS,
+        default=RAW_NOTE_FORMAT,
+        help="Markdown note format to generate.",
+    )
     return parser
 
 
@@ -54,6 +61,7 @@ def main() -> None:
         image_dir=args.image_dir,
         export_images=args.export_images,
         image_dpi=args.image_dpi,
+        note_format=args.note_format,
         force=args.force,
     )
     print(output_path)

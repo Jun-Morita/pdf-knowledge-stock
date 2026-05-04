@@ -8,6 +8,7 @@ from pdf_knowledge_stock.convert import (
 )
 from pdf_knowledge_stock.images import page_image_dir, page_image_path
 from pdf_knowledge_stock.metadata import build_source_metadata, render_front_matter
+from pdf_knowledge_stock.notes import note_title_from_pdf, render_knowledge_note
 
 
 def test_build_source_metadata_uses_pdf_name_and_path() -> None:
@@ -76,3 +77,17 @@ def test_remove_omitted_picture_markers_keeps_picture_text() -> None:
 
     assert "intentionally omitted" not in cleaned
     assert "Diagram text" in cleaned
+
+
+def test_note_title_from_pdf_replaces_separators() -> None:
+    assert note_title_from_pdf(Path("data/raw/sample-deck_v1.pdf")) == "sample deck v1"
+
+
+def test_render_knowledge_note_wraps_page_sections() -> None:
+    rendered = render_knowledge_note("## Page 1\n\nBody", title="Sample")
+
+    assert rendered.startswith("# Sample\n\n## Executive Summary")
+    assert "## Key Takeaways" in rendered
+    assert "## Slide-by-slide Notes\n\n## Page 1\n\nBody" in rendered
+    assert "## Important Terms" in rendered
+    assert rendered.endswith("## Follow-up Questions")

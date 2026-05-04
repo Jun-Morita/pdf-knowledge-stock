@@ -18,10 +18,11 @@
 - Add `--export-images`.
 - Save page images under `data/images/<pdf_stem>/`.
 
-## Phase 4: Optional LLM Cleanup
+## Phase 4: OpenAI Cleanup
 
-- Add opt-in cleanup and summarization.
-- Keep local conversion working without API keys.
+- Use OpenAI cleanup by default on the main conversion command.
+- Add Markdown cleanup using generated Markdown and page images.
+- Keep local conversion working without API keys via `--no-clean`.
 
 ## Phase 5: Codex Skill
 

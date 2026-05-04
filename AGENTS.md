@@ -2,26 +2,25 @@
 
 ## Project Goal
 
-Build a local-first PDF-to-Markdown knowledge stock tool for slide-style PDF
-documents such as company IR materials, AI / LLM seminar slides, and technical
-study materials.
+Build a PDF-to-Markdown knowledge stock tool for slide-style PDF documents such
+as company IR materials, AI / LLM seminar slides, and technical study materials.
+The CLI should use OpenAI cleanup by default while keeping local-only conversion
+available.
 
 The tool should help users convert PDFs into Markdown notes that are useful for:
 
 - Reading and search
 - Obsidian or LLM wiki workflows
 - Company and technical document analysis
-- Future RAG-ready document preparation
 - Future reuse as a Codex skill
 
 ## Core Principles
 
-1. Local-first
-   - The core workflow must work without external APIs or API keys.
-   - Do not send PDFs, extracted text, images, or generated notes to external
-     services by default.
-   - Optional API-based cleanup or summarization may be added later, but it must
-     be explicit, documented, and disabled by default.
+1. OpenAI-enhanced by default
+   - The default CLI workflow may send generated Markdown and selected page
+     images to OpenAI for cleanup.
+   - Do not send the original PDF to OpenAI.
+   - Local-only conversion must remain available with `--no-clean`.
 
 2. Source preservation
    - Keep original PDFs out of Git.
@@ -40,15 +39,14 @@ The tool should help users convert PDFs into Markdown notes that are useful for:
 
 5. Small steps
    - Start with a minimum PDF-to-Markdown converter.
-   - Add structured note cleanup, indexing, and RAG formats in
-     separate steps.
+   - Add page images and OpenAI cleanup in separate steps.
 
 ## Development Rules
 
 - Prefer simple, readable Python.
 - Use `uv` for environment and dependency management.
 - Keep comments in English.
-- Do not require external APIs for the core workflow.
+- Keep local-only conversion available without external APIs.
 - Do not hardcode API keys, local absolute paths, or user-specific secrets.
 - Keep CLI commands reproducible.
 - Add focused tests when adding core logic.
@@ -109,8 +107,6 @@ pdf-knowledge-stock/
     raw/
     markdown/
     images/
-    metadata/
-    summaries/
 ```
 
 ## Git and Data Policy
@@ -128,8 +124,6 @@ __pycache__/
 data/raw/
 data/markdown/
 data/images/
-data/metadata/
-data/summaries/
 
 *.pdf
 ```
@@ -148,6 +142,18 @@ uv run python scripts/convert_pdf.py data/raw/sample.pdf
 Default output:
 
 ```text
+data/markdown/sample.clean.md
+```
+
+Local-only conversion command:
+
+```bash
+uv run python scripts/convert_pdf.py data/raw/sample.pdf --no-clean
+```
+
+Local-only output:
+
+```text
 data/markdown/sample.md
 ```
 
@@ -159,15 +165,35 @@ Current options:
 - `--image-dpi 150`
 - `--note-format raw`
 - `--note-format knowledge`
+- `--clean`
+- `--no-clean`
+- `--clean-model`
+- `--clean-max-images 10`
 - `--force` to overwrite existing generated files
 
 Expected future options:
 
 - `--backend pymupdf4llm`
-- `--clean` for optional LLM cleanup, disabled by default
 
 Do not overwrite generated files silently unless the command clearly documents
 that behavior.
+
+Default OpenAI cleanup is documented as a regeneration workflow and may
+overwrite both the intermediate raw Markdown and the cleaned Markdown output.
+
+## OpenAI Cleanup Policy
+
+OpenAI cleanup is enabled by default for CLI conversion.
+
+- Read `OPENAI_API_KEY` from `.env`.
+- Read `OPENAI_MODEL` from `.env` when present.
+- Document setup in `.env.example` and `README.md`.
+- Do not send the original PDF to OpenAI.
+- Send generated Markdown and selected page images.
+- Limit image inputs by default with `--clean-max-images`.
+- Keep the local conversion path usable without `.env` via `--no-clean`.
+- Write cleaned Markdown as a separate output so raw conversion remains
+  inspectable.
 
 ## Output Policy
 
@@ -271,14 +297,16 @@ Acceptance criteria:
 - Page images are saved under `data/images/<pdf_stem>/`.
 - Markdown references exported images from each page section.
 
-### Phase 4: Optional LLM Cleanup
+### Phase 4: OpenAI Cleanup
 
-Goal: optionally clean raw Markdown into richer knowledge notes.
+Goal: clean raw Markdown into richer Markdown notes using OpenAI by default.
+
+Status: implemented as the default CLI path.
 
 Acceptance criteria:
 
-- LLM use is opt-in.
-- Local conversion still works without API keys.
+- LLM use is the CLI default.
+- Local conversion still works without API keys via `--no-clean`.
 - API-based processing is separated from local conversion code.
 - Prompts and model settings are documented and reproducible.
 
@@ -293,8 +321,7 @@ Skill responsibilities may include:
 - Preserve metadata
 - Save page images
 - Generate a knowledge-note structure
-- Update index files
-- Prepare RAG-ready outputs
+- Optionally clean Markdown with OpenAI
 
 ## Testing Policy
 
@@ -310,7 +337,9 @@ Skill responsibilities may include:
 - Use `.env.example` only for documented configuration names.
 - Treat PDFs, extracted text, images, and generated Markdown as potentially
   private user data.
-- Keep external network calls out of the default path.
+- Default CLI conversion may call OpenAI; keep `--no-clean` available for
+  local-only conversion.
+- Make any external network call visible in CLI options and documentation.
 
 ## License Policy
 

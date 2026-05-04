@@ -9,6 +9,11 @@ from pdf_knowledge_stock.convert import (
 from pdf_knowledge_stock.images import page_image_dir, page_image_path
 from pdf_knowledge_stock.metadata import build_source_metadata, render_front_matter
 from pdf_knowledge_stock.notes import note_title_from_pdf, render_knowledge_note
+from pdf_knowledge_stock.openai_cleanup import (
+    cleaned_markdown_path,
+    extract_markdown_image_paths,
+    strip_markdown_code_fence,
+)
 
 
 def test_build_source_metadata_uses_pdf_name_and_path() -> None:
@@ -91,3 +96,36 @@ def test_render_knowledge_note_wraps_page_sections() -> None:
     assert "## Slide-by-slide Notes\n\n## Page 1\n\nBody" in rendered
     assert "## Important Terms" in rendered
     assert rendered.endswith("## Follow-up Questions")
+
+
+def test_cleaned_markdown_path_adds_clean_suffix() -> None:
+    assert cleaned_markdown_path(Path("data/markdown/sample.md")) == Path(
+        "data/markdown/sample.clean.md"
+    )
+
+
+def test_strip_markdown_code_fence_removes_outer_fence() -> None:
+    assert strip_markdown_code_fence("```markdown\n# Title\n```") == "# Title"
+
+
+def test_extract_markdown_image_paths_resolves_local_images(tmp_path: Path) -> None:
+    markdown_dir = tmp_path / "markdown"
+    image_dir = tmp_path / "images" / "sample"
+    markdown_dir.mkdir()
+    image_dir.mkdir(parents=True)
+    image_path = image_dir / "page_001.png"
+    image_path.write_bytes(b"image")
+    markdown_path = markdown_dir / "sample.md"
+    markdown_path.write_text(
+        "![Page 1](../images/sample/page_001.png)\n"
+        "![Remote](https://example.com/image.png)\n",
+        encoding="utf-8",
+    )
+
+    assert extract_markdown_image_paths(markdown_path) == [image_path.resolve()]
+
+
+def test_cleaned_markdown_path_uses_existing_clean_name() -> None:
+    assert cleaned_markdown_path(Path("data/markdown/sample.clean.md")) == Path(
+        "data/markdown/sample.clean.md"
+    )

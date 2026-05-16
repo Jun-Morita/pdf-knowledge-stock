@@ -126,10 +126,17 @@ def clean_markdown_with_openai(
     from openai import OpenAI
 
     source_path = Path(markdown_path)
-    api_key = resolve_openai_api_key(env_path)
-    resolved_model = model or resolve_openai_model(env_path)
     destination_path = output_path or cleaned_markdown_path(source_path)
     destination_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        api_key = resolve_openai_api_key(env_path)
+        resolved_model = model or resolve_openai_model(env_path)
+    except RuntimeError as exc:
+        raise OpenAICleanupError(
+            str(exc),
+            raw_markdown_path=source_path,
+            clean_markdown_path=destination_path,
+        ) from exc
     markdown_text = source_path.read_text(encoding="utf-8")
 
     content: list[dict[str, object]] = [

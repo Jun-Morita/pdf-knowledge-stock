@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from pdf_knowledge_stock.convert import (
     output_markdown_path,
     page_image_markdown_link,
@@ -10,6 +12,8 @@ from pdf_knowledge_stock.images import page_image_dir, page_image_path
 from pdf_knowledge_stock.metadata import build_source_metadata, render_front_matter
 from pdf_knowledge_stock.notes import note_title_from_pdf, render_knowledge_note
 from pdf_knowledge_stock.openai_cleanup import (
+    OpenAICleanupError,
+    clean_markdown_with_openai,
     cleaned_markdown_path,
     extract_markdown_image_paths,
     strip_markdown_code_fence,
@@ -129,3 +133,20 @@ def test_cleaned_markdown_path_uses_existing_clean_name() -> None:
     assert cleaned_markdown_path(Path("data/markdown/sample.clean.md")) == Path(
         "data/markdown/sample.clean.md"
     )
+
+
+def test_clean_markdown_wraps_missing_api_key_error(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    markdown_path = tmp_path / "sample.md"
+    markdown_path.write_text("# Sample\n", encoding="utf-8")
+    missing_env_path = tmp_path / ".env"
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+    with pytest.raises(OpenAICleanupError) as exc_info:
+        clean_markdown_with_openai(markdown_path, env_path=missing_env_path)
+
+    assert "OPENAI_API_KEY is not set" in str(exc_info.value)
+    assert exc_info.value.raw_markdown_path == markdown_path
+    assert exc_info.value.clean_markdown_path == tmp_path / "sample.clean.md"

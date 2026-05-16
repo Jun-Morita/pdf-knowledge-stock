@@ -7,8 +7,8 @@ This project is intended for materials such as company IR decks, AI / LLM study
 slides, technical seminar PDFs, and other documents that are useful to keep as a
 searchable personal or team knowledge base.
 
-> Status: early development. The minimum local converter and page image export
-> are available.
+> Status: early development. Local conversion, knowledge-note skeletons, page
+> image export, and default OpenAI cleanup are available.
 
 ## Why
 
